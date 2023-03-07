@@ -18,6 +18,7 @@ func (s *allocatorService) GetIdRange(req *model.ApplyReq) (int, int, error) {
 
 	conn, err := db.Mysql.GetConnection(multidb.GetPartnerId())
 	if err != nil {
+		logs.Error("获取mysql连接失败 err: {}", err.Error())
 		return 0, 0, errcode.DbConnectErr.Error()
 	}
 
@@ -26,6 +27,7 @@ func (s *allocatorService) GetIdRange(req *model.ApplyReq) (int, int, error) {
 
 	entity, err := dao.Allocator.GetEntity(req.AppName, req.BizType, req.Day)
 	if err != nil {
+		logs.Error("查询失败 err: {}, req: {}", err.Error(), req)
 		return 0, 0, errcode.DbQueryErr.Error()
 	}
 	if entity == nil {
@@ -42,7 +44,7 @@ func (s *allocatorService) GetIdRange(req *model.ApplyReq) (int, int, error) {
 		err = conn.Debug().Create(&newEntity).Error
 		if err != nil {
 			//出错
-			logs.Error("创建号段记录失败 {}, {}", err.Error(), newEntity)
+			logs.Error("创建号段记录失败 err: {}, newEntity: {} req: {}", err.Error(), newEntity, req)
 			return 0, 0, err
 		}
 		return rangeStart, rangeEnd, nil
@@ -53,21 +55,21 @@ func (s *allocatorService) GetIdRange(req *model.ApplyReq) (int, int, error) {
 	rangeEnd = rangeStart + req.Step
 	entity.CurrentStartId = rangeStart
 	entity.IncrementStep = req.Step
-	entity.ApplyDate = req.Day
 	oldVersion := entity.Version
 	entity.Version = entity.Version + 1
 	err = dao.Allocator.UpdateEntity(entity, oldVersion)
 	if err != nil {
 		//出错
+		logs.Error("更新记录失败")
 		return 0, 0, err
 	}
+
+	logs.Debug("获取到了新号段 请求：{} {} {} {}", req.AppName, req.BizType, req.Day, req.Step)
+	logs.Debug("获取到了新号段 结果：{} {} {} {} {} {}", entity.CurrentStartId, entity.IncrementStep, entity.Version, entity.ApplyDate, rangeStart, rangeEnd)
 	return rangeStart, rangeEnd, nil
 }
 
 func getDayInitRange(step int) (int, int) {
-	//todo 先用从固定值开始的号段进行验证，后面改回随机数开始号段
-	//rangeStart := 32178
-	//rangeEnd := rangeStart + step
 	rangeStart := rand.Intn(49873) + 126
 	rangeEnd := rangeStart + step
 	return rangeStart, rangeEnd

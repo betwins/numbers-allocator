@@ -46,7 +46,7 @@ func (c *allocatorController) ApplyIdRange(ctx *gin.Context) models.Result[any] 
 	if len(req.BizType) > 50 {
 		return errcode.BizTypeTooLong.MGError()
 	}
-	if req.Step == 0 {
+	if req.Step <= 0 {
 		return i18n.ParamError("step")
 	}
 	if req.Day == "" {
@@ -56,10 +56,12 @@ func (c *allocatorController) ApplyIdRange(ctx *gin.Context) models.Result[any] 
 		return errcode.DayFormatErr.MGErrorWithArgs("YYYYMMDD")
 	}
 
-	_, err := time.Parse("20060102", req.Day)
+	applyDay, err := time.Parse("20060102", req.Day)
 	if err != nil {
 		return errcode.DayFormatErr.MGErrorWithArgs("YYYYMMDD")
 	}
+
+	logs.Debug("申请号段 applyDay: {} req: {}", applyDay, req)
 
 	rangeStart, rangeEnd, err := service.Allocator.GetIdRange(&req)
 	if err != nil {
