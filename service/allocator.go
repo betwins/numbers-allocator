@@ -3,18 +3,18 @@ package service
 import (
 	"github.com/maczh/mgin/db"
 	"github.com/maczh/mgin/logs"
+	"math/rand"
 	"numbers-allocator/dao"
 	"numbers-allocator/errcode"
 	"numbers-allocator/model"
 	"numbers-allocator/multidb"
-	"time"
 )
 
 type allocatorService struct{}
 
 var Allocator allocatorService
 
-func (s *allocatorService) GetIdRange(applyDay time.Time, applyType int, incrementStep int) (int, int, error) {
+func (s *allocatorService) GetIdRange(req *model.ApplyReq) (int, int, error) {
 
 	conn, err := db.Mysql.GetConnection(multidb.GetPartnerId())
 	if err != nil {
@@ -24,18 +24,19 @@ func (s *allocatorService) GetIdRange(applyDay time.Time, applyType int, increme
 	var rangeStart int
 	var rangeEnd int
 
-	entity, err := dao.Allocator.GetEntity(applyType, applyDay)
+	entity, err := dao.Allocator.GetEntity(req.AppName, req.BizType, req.Day)
 	if err != nil {
 		return 0, 0, errcode.DbQueryErr.Error()
 	}
 	if entity == nil {
 		//初始化号段记录
-		rangeStart, rangeEnd = getDayInitRange(incrementStep)
+		rangeStart, rangeEnd = getDayInitRange(req.Step)
 		newEntity := model.Allocator{
-			ApplyType:      applyType,
+			ApplyAppName:   req.AppName,
+			ApplyBizType:   req.BizType,
 			CurrentStartId: rangeStart,
-			IncrementStep:  incrementStep,
-			ApplyDate:      applyDay,
+			IncrementStep:  req.Step,
+			ApplyDate:      req.Day,
 			Version:        1,
 		}
 		err = conn.Debug().Create(&newEntity).Error
@@ -49,10 +50,10 @@ func (s *allocatorService) GetIdRange(applyDay time.Time, applyType int, increme
 
 	//更新对应申请日期使用的号段
 	rangeStart = entity.CurrentStartId + entity.IncrementStep + 1
-	rangeEnd = rangeStart + incrementStep
+	rangeEnd = rangeStart + req.Step
 	entity.CurrentStartId = rangeStart
-	entity.IncrementStep = incrementStep
-	entity.ApplyDate = applyDay
+	entity.IncrementStep = req.Step
+	entity.ApplyDate = req.Day
 	oldVersion := entity.Version
 	entity.Version = entity.Version + 1
 	err = dao.Allocator.UpdateEntity(entity, oldVersion)
@@ -65,9 +66,9 @@ func (s *allocatorService) GetIdRange(applyDay time.Time, applyType int, increme
 
 func getDayInitRange(step int) (int, int) {
 	//todo 先用从固定值开始的号段进行验证，后面改回随机数开始号段
-	rangeStart := 32178
-	rangeEnd := rangeStart + step
-	//rangeStart := rand.Intn(49873) + 126
+	//rangeStart := 32178
 	//rangeEnd := rangeStart + step
+	rangeStart := rand.Intn(49873) + 126
+	rangeEnd := rangeStart + step
 	return rangeStart, rangeEnd
 }

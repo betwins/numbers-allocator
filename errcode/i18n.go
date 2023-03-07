@@ -25,6 +25,9 @@ const (
 	ServiceUnavailable MessageId = "服务不存在"
 	Success            MessageId = "success"
 	DbQueryErr         MessageId = "数据库查询失败"
+	DayFormatErr       MessageId = "日期格式必须是: {}"
+	AppNameTooLong     MessageId = "appName不能超过50bytes"
+	BizTypeTooLong     MessageId = "bizType不能超过50bytes"
 )
 
 func (receiver MessageId) Error() error {

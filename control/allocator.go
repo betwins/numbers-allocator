@@ -26,7 +26,7 @@ var Allocator allocatorController
 // @Param Partner-Id header string true "代理商id"
 // @Param params body model.ApplyReq true "请求体"
 // @Success 200 {object} model.NewRangeResp
-// @Router	/ids/apply [post]
+// @Router	/numbers/apply [post]
 func (c *allocatorController) ApplyIdRange(ctx *gin.Context) models.Result[any] {
 	var req model.ApplyReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -34,22 +34,34 @@ func (c *allocatorController) ApplyIdRange(ctx *gin.Context) models.Result[any] 
 		return models.Error(-1, err.Error())
 	}
 
-	if req.Type == 0 {
-		return i18n.ParamError("type")
+	if req.AppName == "" {
+		return i18n.ParamError("appName")
+	}
+	if len(req.AppName) > 50 {
+		return errcode.AppNameTooLong.MGError()
+	}
+	if req.BizType == "" {
+		return i18n.ParamError("bizType")
+	}
+	if len(req.BizType) > 50 {
+		return errcode.BizTypeTooLong.MGError()
 	}
 	if req.Step == 0 {
 		return i18n.ParamError("step")
 	}
 	if req.Day == "" {
-		return i18n.ParamError("step")
+		return i18n.ParamError("day")
+	}
+	if len(req.Day) != 8 {
+		return errcode.DayFormatErr.MGErrorWithArgs("YYYYMMDD")
 	}
 
-	applyDay, err := time.Parse("2006-01-02", req.Day)
+	_, err := time.Parse("20060102", req.Day)
 	if err != nil {
-		return errcode.ParamFormatErr.MGErrorWithArgs("day")
+		return errcode.DayFormatErr.MGErrorWithArgs("YYYYMMDD")
 	}
 
-	rangeStart, rangeEnd, err := service.Allocator.GetIdRange(applyDay, req.Type, req.Step)
+	rangeStart, rangeEnd, err := service.Allocator.GetIdRange(&req)
 	if err != nil {
 		return models.Error(-1, err.Error())
 	}
