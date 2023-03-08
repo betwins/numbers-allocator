@@ -14,7 +14,7 @@ type allocatorService struct{}
 
 var Allocator allocatorService
 
-func (s *allocatorService) GetIdRange(req *model.ApplyReq) (int, int, error) {
+func (s *allocatorService) GetIdRange(req *model.ApplyReq) (int64, int64, error) {
 
 	conn, err := db.Mysql.GetConnection(multidb.GetPartnerId())
 	if err != nil {
@@ -22,8 +22,8 @@ func (s *allocatorService) GetIdRange(req *model.ApplyReq) (int, int, error) {
 		return 0, 0, errcode.DbConnectErr.Error()
 	}
 
-	var rangeStart int
-	var rangeEnd int
+	var rangeStart int64
+	var rangeEnd int64
 
 	entity, err := dao.Allocator.GetEntity(req.AppName, req.BizType, req.Day)
 	if err != nil {
@@ -51,8 +51,8 @@ func (s *allocatorService) GetIdRange(req *model.ApplyReq) (int, int, error) {
 	}
 
 	//更新对应申请日期使用的号段
-	rangeStart = entity.CurrentStartId + entity.IncrementStep + 1
-	rangeEnd = rangeStart + req.Step
+	rangeStart = entity.CurrentStartId + int64(entity.IncrementStep) + 1
+	rangeEnd = rangeStart + int64(req.Step)
 	entity.CurrentStartId = rangeStart
 	entity.IncrementStep = req.Step
 	oldVersion := entity.Version
@@ -69,8 +69,8 @@ func (s *allocatorService) GetIdRange(req *model.ApplyReq) (int, int, error) {
 	return rangeStart, rangeEnd, nil
 }
 
-func getDayInitRange(step int) (int, int) {
+func getDayInitRange(step int) (int64, int64) {
 	rangeStart := rand.Intn(49873) + 126
 	rangeEnd := rangeStart + step
-	return rangeStart, rangeEnd
+	return int64(rangeStart), int64(rangeEnd)
 }

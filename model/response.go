@@ -1,6 +1,6 @@
 package model
 
 type NewRangeResp struct {
-	RangeStart int `json:"rangeStart"`
-	RangeEnd   int `json:"rangeEnd"`
+	RangeStart int64 `json:"rangeStart"`
+	RangeEnd   int64 `json:"rangeEnd"`
 }
