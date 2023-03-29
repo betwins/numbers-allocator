@@ -60,7 +60,7 @@ func (s *allocatorService) GetIdRange(req *model.ApplyReq) (int64, int64, error)
 	err = dao.Allocator.UpdateEntity(entity, oldVersion)
 	if err != nil {
 		//出错
-		logs.Error("更新记录失败")
+		logs.Error("更新记录失败 {}", err.Error())
 		return 0, 0, err
 	}
 

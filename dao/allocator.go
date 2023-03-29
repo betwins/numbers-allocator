@@ -43,12 +43,16 @@ func (s *allocatorDao) UpdateEntity(entity *model.Allocator, oldVersion int) err
 
 	sql := fmt.Sprintf("update numbers_allocator set current_start_id = %d, increment_step = %d, version = %d where id = %d and version = %d",
 		entity.CurrentStartId, entity.IncrementStep, entity.Version, entity.Id, oldVersion)
-	err = conn.Exec(sql).Error
-	if err != nil {
+	result := conn.Exec(sql)
+	if result.Error != nil {
 		logs.Error("获取新号段，更新失败 {} {}", trace.GetGoroutineID(), sql)
-		return err
+		return result.Error
 	}
-	logs.Debug("获取新号段, 更新成功 {}", trace.GetGoroutineID())
+	if result.RowsAffected == 0 {
+		logs.Error("获取号段并发冲突 {} {} {}", trace.GetGoroutineID(), entity, oldVersion)
+		return errcode.ConcurrencyConflict.Error()
+	}
+	logs.Debug("获取新号段, 更新成功 {} {}", entity, trace.GetGoroutineID())
 
 	return nil
 }
