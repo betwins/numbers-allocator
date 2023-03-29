@@ -2,7 +2,6 @@ package dao
 
 import (
 	"errors"
-	"fmt"
 	"github.com/maczh/mgin/logs"
 	"github.com/maczh/mgin/middleware/trace"
 	"numbers-allocator/errcode"
@@ -39,13 +38,10 @@ func (s *allocatorDao) UpdateEntity(entity *model.Allocator, oldVersion int) err
 	}
 
 	logs.Debug("获取新号段，更新新号段 {} {} {} {}", entity.Id, oldVersion, entity.Version, trace.GetGoroutineID())
-	//err = conn.Debug().Model(entity).Where("id = ? and version = ?", entity.Id, oldVersion).Updates(entity).Error
+	result := conn.Debug().Model(entity).Where("id = ? and version = ?", entity.Id, oldVersion).Updates(entity)
 
-	sql := fmt.Sprintf("update numbers_allocator set current_start_id = %d, increment_step = %d, version = %d where id = %d and version = %d",
-		entity.CurrentStartId, entity.IncrementStep, entity.Version, entity.Id, oldVersion)
-	result := conn.Exec(sql)
 	if result.Error != nil {
-		logs.Error("获取新号段，更新失败 {} {}", trace.GetGoroutineID(), sql)
+		logs.Error("获取新号段，更新失败 {}", trace.GetGoroutineID())
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
