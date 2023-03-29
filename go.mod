@@ -5,10 +5,11 @@ go 1.19
 require (
 	github.com/ekyoung/gin-nice-recovery v0.0.0-20160510022553-1654dca486db
 	github.com/gin-gonic/gin v1.9.0
-	github.com/maczh/mgin v1.19.19
+	github.com/maczh/mgin v1.19.29
 	github.com/maczh/mgrabbit v0.0.5
 	github.com/swaggo/files v1.0.0
 	github.com/swaggo/gin-swagger v1.5.3
+	github.com/swaggo/swag v1.8.1
 	gorm.io/gorm v1.24.6
 )
 
@@ -86,7 +87,6 @@ require (
 	github.com/sadlil/gologger v0.0.0-20180131031757-2507bf651df8 // indirect
 	github.com/shiena/ansicolor v0.0.0-20200904210342-c7312218db18 // indirect
 	github.com/streadway/amqp v1.0.0 // indirect
-	github.com/swaggo/swag v1.8.1 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.9 // indirect
 	go.uber.org/atomic v1.7.0 // indirect

@@ -37,18 +37,18 @@ func (s *allocatorDao) UpdateEntity(entity *model.Allocator, oldVersion int) err
 		return errcode.DbConnectErr.Error()
 	}
 
-	logs.Debug("获取新号段，更新新号段 {} {} {} {}", entity.Id, oldVersion, entity.Version, trace.GetGoroutineID())
+	logs.Debug("{} 获取新号段，更新新号段 {} {} {} {}", trace.GetGoroutineID(), entity.Id, oldVersion, entity.Version)
 	result := conn.Debug().Model(entity).Where("id = ? and version = ?", entity.Id, oldVersion).Updates(entity)
 
 	if result.Error != nil {
-		logs.Error("获取新号段，更新失败 {}", trace.GetGoroutineID())
+		logs.Error("{} 获取新号段，更新失败", trace.GetGoroutineID())
 		return result.Error
 	}
 	if result.RowsAffected == 0 {
-		logs.Error("获取号段并发冲突 {} {} {}", trace.GetGoroutineID(), entity, oldVersion)
+		logs.Error("{} 获取号段并发冲突 {} {}", trace.GetGoroutineID(), entity, oldVersion)
 		return errcode.ConcurrencyConflict.Error()
 	}
-	logs.Debug("获取新号段, 更新成功 {} {}", entity, trace.GetGoroutineID())
+	logs.Debug("{} 获取新号段, 更新成功 {}", trace.GetGoroutineID(), entity)
 
 	return nil
 }
