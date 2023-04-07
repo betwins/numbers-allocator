@@ -1,6 +1,7 @@
 package control
 
 import (
+	"context"
 	"numbers-allocator/errcode"
 	"numbers-allocator/model"
 	"numbers-allocator/service"
@@ -27,9 +28,9 @@ var Allocator allocatorController
 // @Param params body model.ApplyReq true "请求体"
 // @Success 200 {object} model.NewRangeResp
 // @Router	/numbers/apply [post]
-func (c *allocatorController) ApplyIdRange(ctx *gin.Context) models.Result[any] {
+func (c *allocatorController) ApplyIdRange(ctx context.Context, ginCtx *gin.Context) models.Result[any] {
 	var req model.ApplyReq
-	if err := ctx.ShouldBindJSON(&req); err != nil {
+	if err := ginCtx.ShouldBindJSON(&req); err != nil {
 		logs.Error("参数绑定错误 {}", err.Error())
 		return models.Error(-1, err.Error())
 	}
@@ -63,7 +64,7 @@ func (c *allocatorController) ApplyIdRange(ctx *gin.Context) models.Result[any] 
 
 	logs.Debug("申请号段 applyDay: {} req: {}", applyDay, req)
 
-	rangeStart, rangeEnd, err := service.Allocator.GetIdRange(&req)
+	rangeStart, rangeEnd, err := service.Allocator.GetIdRange(ctx, &req)
 	if err != nil {
 		return models.Error(-1, err.Error())
 	}
