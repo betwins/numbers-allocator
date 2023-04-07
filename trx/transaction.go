@@ -2,6 +2,7 @@ package trx
 
 import (
 	"context"
+	"database/sql"
 	"github.com/maczh/mgin/db"
 	"github.com/maczh/mgin/logs"
 	"github.com/maczh/mgin/models"
@@ -34,12 +35,11 @@ func Transaction[T any](ctx context.Context, t *T, handler func(ctx context.Cont
 			ret = errcode.SystemError.MGError()
 		}
 	}()
-	//opt := sql.TxOptions{
-	//	Isolation: sql.LevelReadCommitted,
-	//}
+	opt := sql.TxOptions{
+		Isolation: sql.LevelReadCommitted,
+	}
 
-	//conn = conn.Begin(&opt)
-	conn = conn.Begin()
+	conn = conn.Begin(&opt)
 	goCtx := context.WithValue(ctx, txKey{}, conn)
 	ret = handler(goCtx, t)
 
